@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payme - To'lov tizimi</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+body { background: #f0f4f8; min-height: 100vh; }
+
+/* HEADER */
+.header {
+  background: #fff;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.logo {
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  user-select: none;
+}
+.logo .pay { font-size: 24px; font-weight: 900; color: #1a1a1a; letter-spacing: -1px; }
+.logo .me {
+  background: #00c3c3;
+  color: #fff;
+  padding: 1px 9px;
+  border-radius: 6px 6px 6px 0;
+  font-weight: 700;
+  font-size: 16px;
+  width: fit-content;
+  margin-top: -6px;
+  margin-left: 7px;
+}
+
+.corner-auth { margin-left: auto; position: relative; }
+.mini-login-btn {
+  background: #f0f4f8;
+  border: 2px solid #e5eaf0;
+  padding: 8px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  color: #1a1a1a;
+  font-size: 14px;
+  transition: 0.2s;
+}
+.mini-login-btn:hover { background: #00c3c3; color: #fff; border-color: #00c3c3; }
+
+.auth-popup {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  background: #fff;
+  border-radius: 16px;
+  padding: 22px;
+  width: 310px;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+  display: none;
+  z-index: 200;
+}
+.auth-popup.show { display: block; animation: fadeIn 0.2s; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+.auth-popup h3 { color: #1a1a1a; font-size: 17px; margin-bottom: 15px; text-align: center; }
+.auth-popup .form-group { margin-bottom: 12px; }
+.auth-popup label { display: block; margin-bottom: 5px; color: #666; font-size: 12px; font-weight: 600; }
+.auth-popup input {
+  width: 100%;
+  padding: 11px 13px;
+  border: 2px solid #e5eaf0;
+  border-radius: 9px;
+  font-size: 14px;
+  outline: none;
+  transition: 0.2s;
+}
+.auth-popup input:focus { border-color: #00c3c3; }
+.auth-popup .btn-primary {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #00c3c3, #00a0a0);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 5px;
+}
+.auth-popup .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 15px rgba(0,195,195,0.4); }
+.auth-popup .switch-link {
+  text-align: center;
+  margin-top: 12px;
+  font-size: 12px;
+  color: #888;
+}
+.auth-popup .switch-link a { color: #00c3c3; font-weight: 700; cursor: pointer; text-decoration: none; }
+
+.user-badge {
+  background: #e6faf9;
+  color: #007a7a;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.user-badge button {
+  background: #1a1a1a;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* CONTAINER */
+.container { max-width: 480px; margin: 40px auto; padding: 0 20px; }
+
+/* PAYMENT CARD */
+.pay-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 35px 30px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+}
+.pay-card h2 { text-align: center; color: #1a1a1a; margin-bottom: 5px; font-size: 22px; }
+.pay-card .subtitle { text-align: center; color: #888; margin-bottom: 25px; font-size: 14px; }
+
+.card-display {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+  border-radius: 16px;
+  padding: 25px;
+  color: #fff;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.card-display::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(0,195,195,0.35), transparent);
+  border-radius: 50%;
+}
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  position: relative;
+  z-index: 1;
+}
+.card-chip {
+  width: 38px;
+  height: 28px;
+  background: linear-gradient(135deg, #d4af37, #f0d060);
+  border-radius: 6px;
+  position: relative;
+}
+.card-chip::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border: 1px solid rgba(0,0,0,0.2);
+  border-radius: 3px;
+}
+.copy-btn {
+  background: rgba(0,195,195,0.9);
+  border: none;
+  color: #fff;
+  padding: 7px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  position: relative;
+  z-index: 1;
+}
+.copy-btn:hover { background: #00c3c3; }
+.copy-btn:active { transform: scale(0.95); }
+
+.card-number {
+  font-size: 22px;
+  letter-spacing: 2px;
+  font-weight: 600;
+  margin-bottom: 18px;
+  font-family: 'Courier New', monospace;
+  position: relative;
+  z-index: 1;
+}
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  position: relative;
+  z-index: 1;
+}
+.card-label { font-size: 10px; opacity: 0.6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+.card-holder { font-size: 15px; font-weight: 700; text-transform: uppercase; }
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f0f4f8;
+  padding: 14px 16px;
+  border-radius: 12px;
+  margin-bottom: 18px;
+}
+.info-row .label { color: #666; font-size: 14px; }
+.info-row .value { color: #00a0a0; font-weight: 800; font-size: 17px; }
+
+.form-group { margin-bottom: 16px; }
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #555;
+  font-weight: 600;
+  font-size: 14px;
+}
+.form-group input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid #e5eaf0;
+  border-radius: 12px;
+  font-size: 15px;
+  outline: none;
+  transition: 0.3s;
+}
+.form-group input:focus { border-color: #00c3c3; }
+
+.btn-primary {
+  width: 100%;
+  padding: 15px;
+  background: linear-gradient(135deg, #00c3c3, #00a0a0);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,195,195,0.4); }
+.btn-primary:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
+
+.timer-box {
+  background: #fff3cd;
+  border: 2px solid #ffc107;
+  border-radius: 12px;
+  padding: 14px;
+  text-align: center;
+  margin-bottom: 16px;
+}
+.timer-box .timer-label { color: #856404; font-size: 12px; font-weight: 600; }
+.timer-box .timer { font-size: 26px; font-weight: 900; color: #dc3545; font-family: 'Courier New', monospace; margin-top: 3px; }
+
+.status-box {
+  background: #cce5ff;
+  border: 2px solid #004085;
+  border-radius: 12px;
+  padding: 14px;
+  text-align: center;
+  color: #004085;
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+/* ===== STORE LOGOS ===== */
+.store-logos {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 30px;
+  padding-bottom: 30px;
+}
+.store-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #1a1a1a;
+  color: #fff;
+  padding: 9px 16px;
+  border-radius: 10px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: 0.2s;
+  border: none;
+}
+.store-btn:hover { background: #00c3c3; transform: translateY(-2px); }
+.store-btn svg { width: 22px; height: 22px; fill: #fff; }
+.store-btn .store-text { display: flex; flex-direction: column; line-height: 1.1; }
+.store-btn .store-text small { font-size: 9px; opacity: 0.75; text-transform: uppercase; letter-spacing: 0.5px; }
+.store-btn .store-text b { font-size: 13px; font-weight: 700; }
+
+/* ADMIN PANEL */
+.admin-panel { display: none; max-width: 1000px; margin: 30px auto; padding: 0 20px; }
+.admin-panel h2 { color: #1a1a1a; margin-bottom: 20px; font-size: 26px; }
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 25px;
+}
+.stat-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+  border-left: 5px solid #00c3c3;
+}
+.stat-card .stat-label { color: #888; font-size: 13px; margin-bottom: 8px; }
+.stat-card .stat-value { color: #1a1a1a; font-size: 24px; font-weight: 800; }
+
+.admin-section {
+  background: #fff;
+  border-radius: 16px;
+  padding: 25px;
+  margin-bottom: 20px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+}
+.admin-section h3 { color: #1a1a1a; margin-bottom: 15px; font-size: 18px; }
+
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+table th {
+  background: #f0f4f8;
+  color: #555;
+  padding: 12px;
+  text-align: left;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+table th:first-child { border-radius: 10px 0 0 10px; }
+table th:last-child { border-radius: 0 10px 10px 0; }
+table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid #f0f4f8;
+  font-size: 14px;
+  color: #333;
+}
+.badge { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+.badge.pending { background: #fff3cd; color: #856404; }
+.badge.approved { background: #d4edda; color: #155724; }
+.badge.rejected { background: #f8d7da; color: #721c24; }
+
+.action-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  margin-right: 5px;
+}
+.btn-approve { background: #28a745; color: #fff; }
+.btn-reject { background: #dc3545; color: #fff; }
+.btn-approve:hover { background: #218838; }
+.btn-reject:hover { background: #c82333; }
+
+.empty { text-align: center; color: #999; padding: 30px; }
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: #1a1a1a;
+  color: #fff;
+  padding: 15px 25px;
+  border-radius: 12px;
+  font-weight: 600;
+  transform: translateY(200px);
+  transition: 0.4s;
+  z-index: 1000;
+  font-size: 14px;
+  max-width: 320px;
+}
+.toast.show { transform: translateY(0); }
+.toast.success { background: #28a745; }
+.toast.error { background: #dc3545; }
+
+@media (max-width: 600px) {
+  .header { padding: 12px 15px; }
+  .container { margin: 20px auto; }
+  .pay-card { padding: 25px 20px; }
+  .card-number { font-size: 17px; letter-spacing: 1px; }
+  .auth-popup { width: 290px; right: -10px; }
+  .store-logos { flex-direction: column; align-items: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo" onclick="goHome()">
+    <span class="pay">Pay</span>
+    <span class="me">me</span>
+  </div>
+
+  <div class="corner-auth">
+    <button class="mini-login-btn" id="miniLoginBtn" onclick="togglePopup()">👤 Kirish</button>
+
+    <div class="user-badge" id="userBadge" style="display:none;">
+      <span id="userName"></span>
+      <button onclick="logout()">Chiqish</button>
+    </div>
+
+    <div class="auth-popup" id="authPopup">
+      <h3 id="popupTitle">Kirish</h3>
+
+      <div id="popupLoginForm">
+        <div class="form-group">
+          <label>Telefon raqam</label>
+          <input type="tel" id="loginUser" placeholder="" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>Parol</label>
+          <input type="password" id="loginPass" placeholder="" autocomplete="new-password">
+        </div>
+        <button class="btn-primary" onclick="doLogin()">Kirish</button>
+        <div class="switch-link">
+          Hisobingiz yo'qmi? <a onclick="switchPopup('register')">Ro'yxatdan o'tish</a>
+        </div>
+      </div>
+
+      <div id="popupRegisterForm" style="display:none;">
+        <div class="form-group">
+          <label>Ismingiz</label>
+          <input type="text" id="regName" placeholder="">
+        </div>
+        <div class="form-group">
+          <label>Telefon raqam</label>
+          <input type="tel" id="regUser" placeholder="" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>Parol</label>
+          <input type="password" id="regPass" placeholder="" autocomplete="new-password">
+        </div>
+        <button class="btn-primary" onclick="doRegister()">Ro'yxatdan o'tish</button>
+        <div class="switch-link">
+          Hisobingiz bormi? <a onclick="switchPopup('login')">Kirish</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TO'LOV SAHIFASI ===== -->
+<div class="container" id="payBox">
+  <div class="pay-card">
+    <h2>To'lov qilish</h2>
+    <p class="subtitle">Quyidagi kartaga to'lov qiling</p>
+
+    <div class="card-display">
+      <div class="card-top">
+        <div class="card-chip"></div>
+        <button class="copy-btn" onclick="copyCard()">📋 Nusxalash</button>
+      </div>
+      <div class="card-number" id="cardNum">9860 1466 4902 7795</div>
+      <div class="card-footer">
+        <div>
+          <div class="card-label">Karta egasi</div>
+          <div class="card-holder" id="cardHolder">AKMAL G</div>
+        </div>
+        <div style="font-weight:900;font-size:18px;opacity:0.8;font-style:italic;">Payme</div>
+      </div>
+    </div>
+
+    <div class="info-row">
+      <span class="label">To'lov summasi:</span>
+      <span class="value" id="payAmount">0 so'm</span>
+    </div>
+
+    <div class="form-group">
+      <label>To'lov summasi (so'm)</label>
+      <input type="number" id="amountInput" placeholder="Summani kiriting" oninput="updateAmount()">
+    </div>
+
+    <div class="timer-box" id="timerBox" style="display:none;">
+      <div class="timer-label">⏱ To'lov vaqti</div>
+      <div class="timer" id="timer">10:00</div>
+    </div>
+
+    <div class="status-box" id="statusBox" style="display:none;"></div>
+
+    <button class="btn-primary" id="paidBtn" onclick="markPaid()">✅ To'ladim</button>
+
+    <!-- PLAY MARKET & APP STORE LOGOS -->
+    <div class="store-logos">
+      <a class="store-btn" onclick="storeClick('Play Market')">
+        <svg viewBox="0 0 512 512">
+          <path d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1zM47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l256.6-256L47 0zm425.2 225.6l-58.9-34.1-65.7 64.5 65.7 64.5 60.1-34.1c18-14.3 18-46.5-1.2-60.8zM104.6 499l280.8-161.2-60.1-60.1L104.6 499z"/>
+        </svg>
+        <div class="store-text">
+          <small>Yuklab olish</small>
+          <b>Play Market</b>
+        </div>
+      </a>
+
+      <a class="store-btn" onclick="storeClick('App Store')">
+        <svg viewBox="0 0 24 24">
+          <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+        </svg>
+        <div class="store-text">
+          <small>Yuklab olish</small>
+          <b>App Store</b>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ADMIN PANEL ===== -->
+<div class="admin-panel" id="adminBox">
+  <h2>👨‍💼 Admin Panel</h2>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Jami to'lovlar</div>
+      <div class="stat-value" id="totalCount">0</div>
+    </div>
+    <div class="stat-card" style="border-left-color:#28a745;">
+      <div class="stat-label">Tasdiqlangan summa</div>
+      <div class="stat-value" id="totalApproved">0 so'm</div>
+    </div>
+    <div class="stat-card" style="border-left-color:#ffc107;">
+      <div class="stat-label">Kutilayotgan</div>
+      <div class="stat-value" id="totalPending">0</div>
+    </div>
+  </div>
+
+  <div class="admin-section">
+    <h3>💳 Karta ma'lumotlarini o'zgartirish</h3>
+    <div class="form-group">
+      <label>Karta raqami</label>
+      <input type="text" id="adminCardNum" placeholder="9860 1466 4902 7795">
+    </div>
+    <div class="form-group">
+      <label>Karta egasi</label>
+      <input type="text" id="adminCardHolder" placeholder="AKMAL G">
+    </div>
+    <button class="btn-primary" style="width:auto;padding:12px 30px;" onclick="saveCard()">Saqlash</button>
+  </div>
+
+  <div class="admin-section">
+    <h3>📋 To'lovlar ro'yxati</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Foydalanuvchi</th>
+            <th>Summa</th>
+            <th>Vaqt</th>
+            <th>Holat</th>
+            <th>Amal</th>
+          </tr>
+        </thead>
+        <tbody id="paymentsTable">
+          <tr><td colspan="6" class="empty">Hozircha to'lovlar yo'q</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ==================== DATA ====================
+let db = JSON.parse(localStorage.getItem('paymeDB3')) || {
+  users: [{ name: 'Admin', username: '999999999', password: 'abu009.2', isAdmin: true }],
+  payments: [],
+  cardNumber: '9860 1466 4902 7795',
+  cardHolder: 'AKMAL G'
+};
+
+function save() { localStorage.setItem('paymeDB3', JSON.stringify(db)); }
+
+let currentUser = JSON.parse(sessionStorage.getItem('currentUser3')) || null;
+let timerInterval = null;
+let lastPaymentId = null;
+
+// ==================== INIT ====================
+renderPaymentPage();
+updateAuthUI();
+
+// ==================== POPUP ====================
+function togglePopup() {
+  document.getElementById('authPopup').classList.toggle('show');
+}
+
+document.addEventListener('click', (e) => {
+  const popup = document.getElementById('authPopup');
+  const btn = document.getElementById('miniLoginBtn');
+  if (popup && !popup.contains(e.target) && btn && !btn.contains(e.target)) {
+    popup.classList.remove('show');
+  }
+});
+
+function switchPopup(t) {
+  document.getElementById('popupLoginForm').style.display = t === 'login' ? 'block' : 'none';
+  document.getElementById('popupRegisterForm').style.display = t === 'register' ? 'block' : 'none';
+  document.getElementById('popupTitle').textContent = t === 'login' ? 'Kirish' : "Ro'yxatdan o'tish";
+}
+
+// ==================== AUTH ====================
+function doLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value.trim();
+  if (!u || !p) return toast('Barcha maydonlarni to\'ldiring', 'error');
+
+  const user = db.users.find(x => x.username === u && x.password === p);
+  if (!user) return toast('Telefon raqam yoki parol xato!', 'error');
+
+  currentUser = user;
+  sessionStorage.setItem('currentUser3', JSON.stringify(user));
+  toast('Xush kelibsiz, ' + user.name + '!', 'success');
+  document.getElementById('authPopup').classList.remove('show');
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+  updateAuthUI();
+  showApp();
+}
+
+function doRegister() {
+  const n = document.getElementById('regName').value.trim();
+  const u = document.getElementById('regUser').value.trim();
+  const p = document.getElementById('regPass').value.trim();
+  if (!n || !u || !p) return toast('Barcha maydonlarni to\'ldiring', 'error');
+  if (db.users.find(x => x.username === u)) return toast('Bu raqam band!', 'error');
+
+  const user = { name: n, username: u, password: p, isAdmin: false };
+  db.users.push(user);
+  save();
+  currentUser = user;
+  sessionStorage.setItem('currentUser3', JSON.stringify(user));
+  toast('Ro\'yxatdan o\'tdingiz!', 'success');
+  document.getElementById('authPopup').classList.remove('show');
+  updateAuthUI();
+  showApp();
+}
+
+function logout() {
+  if (timerInterval) clearInterval(timerInterval);
+  currentUser = null;
+  sessionStorage.removeItem('currentUser3');
+  updateAuthUI();
+  showApp();
+}
+
+function updateAuthUI() {
+  const btn = document.getElementById('miniLoginBtn');
+  const badge = document.getElementById('userBadge');
+  const nameEl = document.getElementById('userName');
+
+  if (currentUser) {
+    btn.style.display = 'none';
+    badge.style.display = 'flex';
+    nameEl.textContent = '👤 ' + currentUser.name + (currentUser.isAdmin ? ' (Admin)' : '');
+  } else {
+    btn.style.display = 'block';
+    badge.style.display = 'none';
+  }
+}
+
+function showApp() {
+  if (currentUser && currentUser.isAdmin) {
+    document.getElementById('payBox').style.display = 'none';
+    document.getElementById('adminBox').style.display = 'block';
+    renderAdmin();
+  } else {
+    document.getElementById('adminBox').style.display = 'none';
+    document.getElementById('payBox').style.display = 'block';
+    renderPaymentPage();
+  }
+}
+
+function goHome() { showApp(); }
+
+// ==================== PAYMENT ====================
+function renderPaymentPage() {
+  document.getElementById('cardNum').textContent = db.cardNumber;
+  document.getElementById('cardHolder').textContent = db.cardHolder.toUpperCase();
+}
+
+function updateAmount() {
+  const a = document.getElementById('amountInput').value;
+  document.getElementById('payAmount').textContent = a ? Number(a).toLocaleString() + ' so\'m' : '0 so\'m';
+}
+
+function copyCard() {
+  const num = db.cardNumber.replace(/\s/g, '');
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(num).then(() => {
+      toast('✅ Karta raqami nusxalandi', 'success');
+    }).catch(() => fallbackCopy(num));
+  } else fallbackCopy(num);
+}
+
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); toast('✅ Nusxalandi', 'success'); }
+  catch (e) { toast('Xatolik', 'error'); }
+  document.body.removeChild(ta);
+}
+
+function markPaid() {
+  if (!currentUser) {
+    toast('Avval tizimga kiring!', 'error');
+    document.getElementById('authPopup').classList.add('show');
+    return;
+  }
+
+  const amount = Number(document.getElementById('amountInput').value);
+  if (!amount || amount <= 0) return toast('Summani kiriting!', 'error');
+  if (lastPaymentId) return toast('To\'lov allaqachon yuborilgan!', 'error');
+
+  const payment = {
+    id: Date.now(),
+    user: currentUser.name,
+    username: currentUser.username,
+    amount: amount,
+    time: new Date().toLocaleString('uz-UZ'),
+    status: 'pending'
+  };
+  db.payments.push(payment);
+  save();
+  lastPaymentId = payment.id;
+
+  document.getElementById('paidBtn').disabled = true;
+  document.getElementById('paidBtn').textContent = '⏳ Tasdiqlanishini kuting...';
+  document.getElementById('timerBox').style.display = 'block';
+  const sb = document.getElementById('statusBox');
+  sb.style.display = 'block';
+  sb.textContent = '💳 To\'lov yuborildi. Admin tasdiqlashini kuting...';
+
+  startTimer(600);
+  toast('To\'lovingiz admin tasdiqlashini kutmoqda', 'success');
+}
+
+function startTimer(seconds) {
+  if (timerInterval) clearInterval(timerInterval);
+  let t = seconds;
+  updateTimerDisplay(t);
+  timerInterval = setInterval(() => {
+    t--;
+    updateTimerDisplay(t);
+    if (t <= 0) {
+      clearInterval(timerInterval);
+      toast('To\'lov vaqti tugadi!', 'error');
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay(t) {
+  const m = Math.floor(t / 60);
+  const s = t % 60;
+  document.getElementById('timer').textContent =
+    String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+}
+
+// ==================== ADMIN ====================
+function renderAdmin() {
+  document.getElementById('adminCardNum').value = db.cardNumber;
+  document.getElementById('adminCardHolder').value = db.cardHolder;
+
+  let totalApproved = 0, pendingCount = 0;
+  db.payments.forEach(p => {
+    if (p.status === 'approved') totalApproved += p.amount;
+    if (p.status === 'pending') pendingCount++;
+  });
+
+  document.getElementById('totalCount').textContent = db.payments.length;
+  document.getElementById('totalApproved').textContent = totalApproved.toLocaleString() + ' so\'m';
+  document.getElementById('totalPending').textContent = pendingCount;
+
+  const tbody = document.getElementById('paymentsTable');
+  if (db.payments.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty">Hozircha to\'lovlar yo\'q</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = db.payments.slice().reverse().map((p, i) => `
+    <tr>
+      <td>${db.payments.length - i}</td>
+      <td><b>${p.user}</b><br><small style="color:#888;">${p.username}</small></td>
+      <td><b style="color:#00a0a0;">${p.amount.toLocaleString()} so'm</b></td>
+      <td>${p.time}</td>
+      <td><span class="badge ${p.status}">${
+        p.status === 'pending' ? 'Kutilmoqda' :
+        p.status === 'approved' ? 'Tasdiqlangan' : 'Rad etilgan'
+      }</span></td>
+      <td>
+        ${p.status === 'pending' ? `
+          <button class="action-btn btn-approve" onclick="approvePayment(${p.id})">✓</button>
+          <button class="action-btn btn-reject" onclick="rejectPayment(${p.id})">✕</button>
+        ` : '—'}
+      </td>
+    </tr>
+  `).join('');
+}
+
+function approvePayment(id) {
+  const p = db.payments.find(x => x.id === id);
+  if (p) p.status = 'approved';
+  save(); renderAdmin();
+  toast('To\'lov tasdiqlandi!', 'success');
+}
+
+function rejectPayment(id) {
+  const p = db.payments.find(x => x.id === id);
+  if (p) p.status = 'rejected';
+  save(); renderAdmin();
+  toast('To\'lov rad etildi', 'error');
+}
+
+function saveCard() {
+  const num = document.getElementById('adminCardNum').value.trim();
+  const holder = document.getElementById('adminCardHolder').value.trim();
+  if (!num || !holder) return toast('Ma\'lumotlarni to\'ldiring', 'error');
+  db.cardNumber = num;
+  db.cardHolder = holder;
+  save();
+  toast('Karta ma\'lumotlari saqlandi!', 'success');
+}
+
+// ==================== STORE ====================
+function storeClick(name) {
+  toast(name + ' ga o\'tish...', 'success');
+}
+
+// ==================== TOAST ====================
+function toast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.className = 'toast ' + type, 2500);
+}
+</script>
+</body>
+</html>
