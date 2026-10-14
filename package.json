@@ -1,0 +1,15 @@
+{
+  "name": "payme-tolov",
+  "version": "1.0.0",
+  "description": "PayHamyon avto-to'lov tizimi",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
